@@ -21,10 +21,42 @@ const SERVICE_OPTIONS = [
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const payload = {
+      nombre: String(fd.get("nombre") ?? "").trim(),
+      apellidos: String(fd.get("apellidos") ?? "").trim(),
+      correo: String(fd.get("correo") ?? "").trim(),
+      telefono: String(fd.get("telefono") ?? "").trim(),
+      servicio: String(fd.get("servicio") ?? "").trim(),
+      mensaje: String(fd.get("mensaje") ?? "").trim(),
+    };
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setError(data.error || "No se pudo enviar el mensaje.");
+        return;
+      }
+      setSubmitted(true);
+      form.reset();
+    } catch {
+      setError("Error de conexión. Verifica tu red e intenta de nuevo.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -152,6 +184,14 @@ export default function Contact() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {error ? (
+                    <div
+                      className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                      role="alert"
+                    >
+                      {error}
+                    </div>
+                  ) : null}
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div>
                       <label htmlFor="nombre" className="mb-1 block text-sm font-medium text-slate-dark">
@@ -243,9 +283,10 @@ export default function Contact() {
 
                   <button
                     type="submit"
-                    className="w-full rounded-md bg-maroon px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-lg transition-all hover:bg-maroon-light hover:shadow-xl"
+                    disabled={isSubmitting}
+                    className="w-full rounded-md bg-maroon px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-lg transition-all hover:bg-maroon-light hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    Enviar mensaje
+                    {isSubmitting ? "Enviando…" : "Enviar mensaje"}
                   </button>
                 </form>
               )}
