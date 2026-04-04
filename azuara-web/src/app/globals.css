@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-maroon: #6B1005;
+  --color-maroon-light: #7F2419;
+  --color-maroon-dark: #4A0B03;
+  --color-gold: #AD9469;
+  --color-gold-light: #C4AF88;
+  --color-gold-dark: #8C7750;
+  --color-slate-dark: #343A40;
+  --color-warm-gray: #F5F5F5;
+
+  --font-heading: "Playfair Display", Georgia, serif;
+  --font-body: "Lato", Helvetica, Arial, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
