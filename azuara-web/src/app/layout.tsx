@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Lato } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -36,9 +37,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+
   return (
     <html lang="es" className={`${playfair.variable} ${lato.variable}`}>
       <body className="font-body antialiased text-slate-dark">{children}</body>
+      {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }
