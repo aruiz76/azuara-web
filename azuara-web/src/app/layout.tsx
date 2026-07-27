@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Lato } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -41,7 +42,10 @@ export default function RootLayout({
 
   return (
     <html lang="es" className={`${playfair.variable} ${lato.variable}`}>
-      <body className="font-body antialiased text-slate-dark">{children}</body>
+      <body className="font-body antialiased text-slate-dark">
+        {children}
+        <Analytics />
+      </body>
       {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
