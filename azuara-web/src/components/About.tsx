@@ -49,7 +49,7 @@ export default function About() {
 
             <div className="mt-8 rounded-lg border-l-4 border-gold bg-warm-gray p-6">
               <p className="font-heading text-lg font-semibold text-slate-dark">
-                Mtra. Lic. Liliana Azuara Reyes
+                Dra. Liliana Azuara Reyes
               </p>
               <p className="text-sm text-gold-dark">Socia Directora</p>
             </div>

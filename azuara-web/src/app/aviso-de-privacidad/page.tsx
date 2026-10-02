@@ -73,7 +73,7 @@ const SECTIONS: LegalSectionData[] = [
           <li>
             Correo electrónico: <LegalMail address={PRIVACY_EMAIL} />
           </li>
-          <li>Teléfonos: 81 3862 1410 / 81 1712 3014</li>
+          <li>Teléfono: 81 1712 3014</li>
           {PRIVACY_OFFICER ? (
             <li>Responsable interno de datos personales: {PRIVACY_OFFICER}</li>
           ) : null}

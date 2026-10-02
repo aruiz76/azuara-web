@@ -91,7 +91,7 @@ export default function Footer() {
             <h4 className="mb-4 mt-8 font-heading text-sm font-semibold uppercase tracking-wider text-gold">
               Abogados
             </h4>
-            <p className="text-sm">Liliana Azuara – Socia Directora</p>
+            <p className="text-sm">Dra. Liliana Azuara – Socia Directora</p>
           </div>
         </div>
 
