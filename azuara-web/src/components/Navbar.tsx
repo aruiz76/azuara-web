@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react";
 
 const NAV_LINKS = [
-  { label: "Inicio", href: "#inicio" },
-  { label: "Servicios", href: "#servicios" },
-  { label: "Nosotros", href: "#nosotros" },
-  { label: "Casos", href: "#casos" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Inicio", href: "/#inicio" },
+  { label: "Servicios", href: "/#servicios" },
+  { label: "Nosotros", href: "/#nosotros" },
+  { label: "Casos", href: "/#casos" },
+  { label: "Contacto", href: "/#contacto" },
 ];
 
-export default function Navbar() {
+export default function Navbar({ solid = false }: { solid?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -20,27 +20,30 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Las páginas sin hero oscuro (p. ej. aviso de privacidad) usan la barra sólida desde el inicio
+  const opaque = solid || scrolled;
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
+        opaque
           ? "bg-white/95 backdrop-blur-md shadow-md"
           : "bg-transparent"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
-        <a href="#inicio" className="flex items-baseline gap-1">
+        <a href="/#inicio" className="flex items-baseline gap-1">
           <span
             className={`font-heading text-2xl font-bold tracking-tight transition-colors ${
-              scrolled ? "text-maroon" : "text-white"
+              opaque ? "text-maroon" : "text-white"
             }`}
           >
             Azuara
           </span>
           <span
             className={`font-heading text-lg font-light transition-colors ${
-              scrolled ? "text-gold" : "text-gold-light"
+              opaque ? "text-gold" : "text-gold-light"
             }`}
           >
             y Asociados
@@ -54,7 +57,7 @@ export default function Navbar() {
               <a
                 href={link.href}
                 className={`text-sm font-medium uppercase tracking-wider transition-colors hover:text-gold ${
-                  scrolled ? "text-slate-dark" : "text-white"
+                  opaque ? "text-slate-dark" : "text-white"
                 }`}
               >
                 {link.label}
@@ -72,7 +75,7 @@ export default function Navbar() {
         >
           <svg
             className={`h-7 w-7 transition-colors ${
-              scrolled ? "text-maroon" : "text-white"
+              opaque ? "text-maroon" : "text-white"
             }`}
             fill="none"
             viewBox="0 0 24 24"

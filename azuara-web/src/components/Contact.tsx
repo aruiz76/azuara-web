@@ -36,6 +36,7 @@ export default function Contact() {
       telefono: String(fd.get("telefono") ?? "").trim(),
       servicio: String(fd.get("servicio") ?? "").trim(),
       mensaje: String(fd.get("mensaje") ?? "").trim(),
+      aceptaAviso: fd.get("acepta_aviso") === "on",
     };
 
     setIsSubmitting(true);
@@ -195,26 +196,28 @@ export default function Contact() {
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div>
                       <label htmlFor="nombre" className="mb-1 block text-sm font-medium text-slate-dark">
-                        Nombre <span className="text-maroon">*</span>
+                        Nombre
                       </label>
                       <input
                         id="nombre"
                         name="nombre"
                         type="text"
                         required
+                        autoComplete="given-name"
                         placeholder="Tu nombre"
                         className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
                       />
                     </div>
                     <div>
                       <label htmlFor="apellidos" className="mb-1 block text-sm font-medium text-slate-dark">
-                        Apellidos <span className="text-maroon">*</span>
+                        Apellidos
                       </label>
                       <input
                         id="apellidos"
                         name="apellidos"
                         type="text"
                         required
+                        autoComplete="family-name"
                         placeholder="Tus apellidos"
                         className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
                       />
@@ -224,25 +227,28 @@ export default function Contact() {
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div>
                       <label htmlFor="correo" className="mb-1 block text-sm font-medium text-slate-dark">
-                        Correo electrónico <span className="text-maroon">*</span>
+                        Correo electrónico
                       </label>
                       <input
                         id="correo"
                         name="correo"
                         type="email"
                         required
+                        autoComplete="email"
                         placeholder="tu@correo.com"
                         className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
                       />
                     </div>
                     <div>
                       <label htmlFor="telefono" className="mb-1 block text-sm font-medium text-slate-dark">
-                        Teléfono
+                        Teléfono{" "}
+                        <span className="font-normal text-gray-500">(opcional)</span>
                       </label>
                       <input
                         id="telefono"
                         name="telefono"
                         type="tel"
+                        autoComplete="tel"
                         placeholder="81 1234 5678"
                         className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
                       />
@@ -251,7 +257,8 @@ export default function Contact() {
 
                   <div>
                     <label htmlFor="servicio" className="mb-1 block text-sm font-medium text-slate-dark">
-                      Estoy interesado en asesoría en:
+                      Estoy interesado en asesoría en{" "}
+                      <span className="font-normal text-gray-500">(opcional)</span>
                     </label>
                     <select
                       id="servicio"
@@ -269,7 +276,7 @@ export default function Contact() {
 
                   <div>
                     <label htmlFor="mensaje" className="mb-1 block text-sm font-medium text-slate-dark">
-                      Háblanos más sobre tu caso <span className="text-maroon">*</span>
+                      Háblanos más sobre tu caso
                     </label>
                     <textarea
                       id="mensaje"
@@ -280,6 +287,26 @@ export default function Contact() {
                       className="w-full resize-none rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
                     />
                   </div>
+
+                  <label className="flex items-start gap-3 text-sm leading-relaxed text-gray-600">
+                    <input
+                      type="checkbox"
+                      name="acepta_aviso"
+                      required
+                      className="mt-0.5 h-6 w-6 shrink-0 accent-maroon"
+                    />
+                    <span>
+                      He leído y acepto el{" "}
+                      <a
+                        href="/aviso-de-privacidad"
+                        target="_blank"
+                        className="font-semibold text-maroon underline underline-offset-2 hover:text-gold-dark"
+                      >
+                        Aviso de privacidad
+                      </a>
+                      .
+                    </span>
+                  </label>
 
                   <button
                     type="submit"

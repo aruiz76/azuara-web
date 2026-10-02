@@ -1,9 +1,10 @@
 const FOOTER_LINKS = [
-  { label: "Inicio", href: "#inicio" },
-  { label: "Servicios", href: "#servicios" },
-  { label: "Nosotros", href: "#nosotros" },
-  { label: "Casos", href: "#casos" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Inicio", href: "/#inicio" },
+  { label: "Servicios", href: "/#servicios" },
+  { label: "Nosotros", href: "/#nosotros" },
+  { label: "Casos", href: "/#casos" },
+  { label: "Contacto", href: "/#contacto" },
+  { label: "Aviso de privacidad", href: "/aviso-de-privacidad" },
 ];
 
 export default function Footer() {
@@ -13,7 +14,7 @@ export default function Footer() {
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <a href="#inicio" className="flex items-baseline gap-1">
+            <a href="/#inicio" className="flex items-baseline gap-1">
               <span className="font-heading text-2xl font-bold text-white">
                 Azuara
               </span>

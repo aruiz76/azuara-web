@@ -13,6 +13,7 @@ type ContactPayload = {
   telefono?: unknown;
   servicio?: unknown;
   mensaje?: unknown;
+  aceptaAviso?: unknown;
 };
 
 function getSmtpConfig(): SMTPTransport.Options | null {
@@ -67,6 +68,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (raw.aceptaAviso !== true) {
+    return NextResponse.json(
+      { error: "Marca la casilla del aviso de privacidad para enviar tu mensaje." },
+      { status: 400 },
+    );
+  }
+
   if (!isValidEmail(correo)) {
     return NextResponse.json({ error: "Correo electrónico no válido." }, { status: 400 });
   }
@@ -85,6 +93,8 @@ export async function POST(request: Request) {
 
   const transporter = nodemailer.createTransport(smtp);
 
+  const consentLine = `Aceptó el aviso de privacidad: sí (${new Date().toISOString()})`;
+
   const lines = [
     `Nombre: ${nombre} ${apellidos}`,
     `Correo: ${correo}`,
@@ -93,6 +103,8 @@ export async function POST(request: Request) {
     "",
     "Mensaje:",
     mensaje,
+    "",
+    consentLine,
   ].filter((l): l is string => l !== null);
 
   const textBody = lines.join("\n");
@@ -103,6 +115,7 @@ export async function POST(request: Request) {
     ${servicio ? `<p><strong>Servicio de interés:</strong> ${escapeHtml(servicio)}</p>` : ""}
     <p><strong>Mensaje:</strong></p>
     <p>${escapeHtml(mensaje).replace(/\n/g, "<br/>")}</p>
+    <p><small>${consentLine}</small></p>
   `.trim();
 
   try {
