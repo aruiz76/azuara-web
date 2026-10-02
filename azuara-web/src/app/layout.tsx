@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Lato } from "next/font/google";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { Analytics } from "@vercel/analytics/next";
+import Analitica from "@/components/Analitica";
 import EnvironmentBadge from "@/components/EnvironmentBadge";
 import { isProduction } from "@/lib/env";
 import {
@@ -59,13 +58,12 @@ export default function RootLayout({
   const gaId = isProduction ? process.env.NEXT_PUBLIC_GA_ID : undefined;
 
   return (
-    <html lang="es" className={`${playfair.variable} ${lato.variable}`}>
+    <html lang="es-MX" className={`${playfair.variable} ${lato.variable}`}>
       <body className="font-body antialiased text-slate-dark">
         {children}
         <EnvironmentBadge />
-        <Analytics />
+        <Analitica gaId={gaId} />
       </body>
-      {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }

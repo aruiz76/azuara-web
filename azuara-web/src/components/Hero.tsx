@@ -22,7 +22,7 @@ export default function Hero() {
         <h1 className="font-heading text-4xl font-bold leading-tight text-white sm:text-5xl md:text-7xl">
           Azuara &amp; Asociados
           <br />
-          <span className="text-gold">Abogados</span>
+          <span className="text-gold">Abogados en Monterrey</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg font-light leading-relaxed text-white/80 md:text-xl">
           Si deseamos respeto por la ley, nosotros debemos primero hacer la ley
