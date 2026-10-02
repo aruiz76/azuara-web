@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const FOOTER_LINKS = [
   { label: "Inicio", href: "/#inicio" },
   { label: "Servicios", href: "/#servicios" },
@@ -14,7 +16,7 @@ export default function Footer() {
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <a href="/#inicio" className="flex items-baseline gap-1">
+            <Link href="/#inicio" className="flex items-baseline gap-1">
               <span className="font-heading text-2xl font-bold text-white">
                 Azuara
               </span>
@@ -24,7 +26,7 @@ export default function Footer() {
               <span className="font-heading text-sm font-light text-gold/60">
                 MX.
               </span>
-            </a>
+            </Link>
             <p className="mt-4 max-w-md text-sm leading-relaxed">
               Azuara y Asociados es una firma legal asentada en el Área
               Metropolitana de Monterrey, en el Estado de Nuevo León, México.

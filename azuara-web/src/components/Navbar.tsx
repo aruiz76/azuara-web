@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 const NAV_LINKS = [
   { label: "Inicio", href: "/#inicio" },
@@ -33,7 +34,7 @@ export default function Navbar({ solid = false }: { solid?: boolean }) {
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
-        <a href="/#inicio" className="flex items-baseline gap-1">
+        <Link href="/#inicio" className="flex items-baseline gap-1">
           <span
             className={`font-heading text-2xl font-bold tracking-tight transition-colors ${
               opaque ? "text-maroon" : "text-white"
@@ -48,7 +49,7 @@ export default function Navbar({ solid = false }: { solid?: boolean }) {
           >
             y Asociados
           </span>
-        </a>
+        </Link>
 
         {/* Desktop links */}
         <ul className="hidden items-center gap-8 md:flex">
