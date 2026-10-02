@@ -6,6 +6,7 @@ import {
   validateContact,
   type ContactValues,
 } from "@/lib/contact";
+import { isProduction } from "@/lib/env";
 
 export const runtime = "nodejs";
 
@@ -117,7 +118,8 @@ export async function POST(request: Request) {
       from: `"Sitio web — Azuara y Asociados" <${mailFrom}>`,
       to: mailTo,
       replyTo: correo,
-      subject: `Nuevo contacto web: ${nombre} ${apellidos}`,
+      // Fuera de producción el asunto lo dice, para que el despacho no lo tome por un prospecto real
+      subject: `${isProduction ? "" : "[PRUEBA] "}Nuevo contacto web: ${nombre} ${apellidos}`,
       text: textBody,
       html: htmlBody,
     });
