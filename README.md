@@ -53,14 +53,22 @@ Un solo interruptor decide el ambiente: `VERCEL_ENV` (`src/lib/env.ts`).
 | Buscadores | Indexable, con `sitemap.xml` | `noindex` y `robots.txt` cerrado |
 | Google Analytics | Activo | Apagado |
 
-Flujo de ramas previsto: rama de trabajo → `uat` → `main`. `main` es producción.
-El ambiente UAT (rama `uat` con su subdominio en Vercel) está pendiente de montar.
+Flujo de ramas: rama de trabajo → `uat` → `main`.
+
+| Rama | Ambiente | URL |
+|---|---|---|
+| `main` | Producción | <https://www.azuarayasociados.mx> |
+| `uat` | UAT (Preview de Vercel) | <https://azuara-uat.vercel.app> |
+
+UAT está detrás de Vercel Authentication: hay que iniciar sesión en Vercel con acceso
+al proyecto, o usar un enlace compartible. Las variables de UAT son las de Preview; una
+variable de Preview asignada a la rama `uat` pisa a la general.
 
 ## Despliegue en Vercel
 
 - Proyecto `azuara-web`, conectado a este repositorio; `main` despliega a producción.
-- **Root Directory debe ser `azuara-web`.** Mientras esté en `.`, los despliegues por
-  `git push` fallan con «Couldn't find any `pages` or `app` directory».
+- **Root Directory es `azuara-web`.** Los despliegues salen de `git push`; un despliegue
+  con la CLI debe lanzarse desde la raíz del repositorio, no desde `azuara-web/`.
 - Una regla de firewall solo permite tráfico desde México y Estados Unidos: un 403
   desde otro país (o con VPN) es esperado.
 
