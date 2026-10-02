@@ -2,6 +2,14 @@ import type { Metadata } from "next";
 import { Playfair_Display, Lato } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Analytics } from "@vercel/analytics/next";
+import EnvironmentBadge from "@/components/EnvironmentBadge";
+import { isProduction } from "@/lib/env";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/site";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -18,9 +26,9 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "Azuara y Asociados MX. | Firma Legal en Monterrey",
-  description:
-    "Más de 20 años de experiencia en Derecho Civil, Familiar, Laboral, Penal, Empresarial y Amparos. Firma legal en el Área Metropolitana de Monterrey, Nuevo León.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
   keywords: [
     "abogados Monterrey",
     "firma legal Nuevo León",
@@ -31,6 +39,16 @@ export const metadata: Metadata = {
     "derecho laboral",
     "derecho empresarial",
   ],
+  robots: { index: isProduction, follow: isProduction },
+  openGraph: {
+    type: "website",
+    locale: "es_MX",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: "/",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({
@@ -38,12 +56,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  const gaId = isProduction ? process.env.NEXT_PUBLIC_GA_ID : undefined;
 
   return (
     <html lang="es" className={`${playfair.variable} ${lato.variable}`}>
       <body className="font-body antialiased text-slate-dark">
         {children}
+        <EnvironmentBadge />
         <Analytics />
       </body>
       {gaId ? <GoogleAnalytics gaId={gaId} /> : null}

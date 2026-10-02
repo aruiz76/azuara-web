@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { SITE_NAME } from "@/lib/site";
 import {
   LegalMail,
   LegalSection,
@@ -12,10 +13,23 @@ import {
   type LegalSectionData,
 } from "@/components/Legal";
 
+const PAGE_TITLE = "Aviso de privacidad | Azuara y Asociados MX.";
+const PAGE_DESCRIPTION =
+  "Aviso de privacidad integral de Firma Legal Azuara y Asociados, S.C. Tratamiento de datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.";
+
 export const metadata: Metadata = {
-  title: "Aviso de privacidad | Azuara y Asociados MX.",
-  description:
-    "Aviso de privacidad integral de Firma Legal Azuara y Asociados, S.C. Tratamiento de datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.",
+  title: PAGE_TITLE,
+  description: PAGE_DESCRIPTION,
+  alternates: { canonical: "/aviso-de-privacidad" },
+  openGraph: {
+    type: "article",
+    locale: "es_MX",
+    siteName: SITE_NAME,
+    title: PAGE_TITLE,
+    description: PAGE_DESCRIPTION,
+    url: "/aviso-de-privacidad",
+    images: ["/opengraph-image"],
+  },
 };
 
 // Datos por confirmar con el Despacho antes de publicar
