@@ -1,7 +1,11 @@
 import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { NextResponse } from "next/server";
-import { FIELD_LIMITS, HONEYPOT_FIELD, SERVICE_OPTIONS } from "@/lib/contact";
+import {
+  HONEYPOT_FIELD,
+  validateContact,
+  type ContactValues,
+} from "@/lib/contact";
 
 export const runtime = "nodejs";
 
@@ -15,18 +19,6 @@ type ContactPayload = {
   aceptaAviso?: unknown;
   [HONEYPOT_FIELD]?: unknown;
 };
-
-const FIELD_LABELS: Record<keyof typeof FIELD_LIMITS, string> = {
-  nombre: "El nombre",
-  apellidos: "Los apellidos",
-  correo: "El correo electrónico",
-  telefono: "El teléfono",
-  mensaje: "El mensaje",
-};
-
-function badRequest(error: string) {
-  return NextResponse.json({ error }, { status: 400 });
-}
 
 function getSmtpConfig(): SMTPTransport.Options | null {
   const host = process.env.SMTP_HOST?.trim();
@@ -43,10 +35,6 @@ function getSmtpConfig(): SMTPTransport.Options | null {
     secure,
     auth: { user, pass },
   };
-}
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 export async function POST(request: Request) {
@@ -72,43 +60,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  const nombre = String(raw.nombre ?? "").trim();
-  const apellidos = String(raw.apellidos ?? "").trim();
-  const correo = String(raw.correo ?? "").trim();
-  const telefono = String(raw.telefono ?? "").trim();
-  const servicio = String(raw.servicio ?? "").trim();
-  const mensaje = String(raw.mensaje ?? "").trim();
+  const values: ContactValues = {
+    nombre: String(raw.nombre ?? "").trim(),
+    apellidos: String(raw.apellidos ?? "").trim(),
+    correo: String(raw.correo ?? "").trim(),
+    telefono: String(raw.telefono ?? "").trim(),
+    servicio: String(raw.servicio ?? "").trim(),
+    mensaje: String(raw.mensaje ?? "").trim(),
+    aceptaAviso: raw.aceptaAviso === true,
+  };
 
-  if (!nombre || !apellidos || !correo || !mensaje) {
+  const fields = validateContact(values);
+  if (Object.keys(fields).length > 0) {
     return NextResponse.json(
-      { error: "Completa los campos obligatorios." },
+      { error: "Revisa los campos señalados.", fields },
       { status: 400 },
     );
   }
 
-  if (raw.aceptaAviso !== true) {
-    return NextResponse.json(
-      { error: "Marca la casilla del aviso de privacidad para enviar tu mensaje." },
-      { status: 400 },
-    );
-  }
-
-  if (!isValidEmail(correo)) {
-    return NextResponse.json({ error: "Correo electrónico no válido." }, { status: 400 });
-  }
-
-  const values = { nombre, apellidos, correo, telefono, mensaje };
-  for (const field of Object.keys(FIELD_LIMITS) as (keyof typeof FIELD_LIMITS)[]) {
-    if (values[field].length > FIELD_LIMITS[field]) {
-      return badRequest(
-        `${FIELD_LABELS[field]} debe tener máximo ${FIELD_LIMITS[field]} caracteres.`,
-      );
-    }
-  }
-
-  if (servicio && !SERVICE_OPTIONS.includes(servicio)) {
-    return badRequest("Elige el servicio de la lista del formulario.");
-  }
+  const { nombre, apellidos, correo, telefono, servicio, mensaje } = values;
 
   const mailTo =
     process.env.MAIL_TO?.trim() || "notificaciones@azuarayasociados.mx";

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { WHATSAPP_PHONE } from "@/lib/site";
 
-const PHONE = "5218117123014";
 const MESSAGE = encodeURIComponent(
   "Hola Azuara y Asociados MX! Quiero tener más información sobre los servicios legales que ofrecen."
 );
@@ -19,7 +19,7 @@ export default function WhatsAppButton() {
 
   return (
     <a
-      href={`https://wa.me/${PHONE}?text=${MESSAGE}`}
+      href={`https://wa.me/${WHATSAPP_PHONE}?text=${MESSAGE}`}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-all hover:scale-110 hover:bg-green-600 hover:shadow-xl"

@@ -1,19 +1,68 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { FIELD_LIMITS, HONEYPOT_FIELD, SERVICE_OPTIONS } from "@/lib/contact";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  CONTACT_FIELDS,
+  FIELD_LIMITS,
+  HONEYPOT_FIELD,
+  SERVICE_OPTIONS,
+  validateContact,
+  whatsappFallbackUrl,
+  type ContactErrors,
+  type ContactField,
+  type ContactValues,
+} from "@/lib/contact";
+import { WHATSAPP_PHONE } from "@/lib/site";
+
+const FIELD_IDS: Record<ContactField, string> = {
+  nombre: "nombre",
+  apellidos: "apellidos",
+  correo: "correo",
+  telefono: "telefono",
+  servicio: "servicio",
+  mensaje: "mensaje",
+  aceptaAviso: "acepta_aviso",
+};
+
+function fieldClass(invalid: boolean, extra = "") {
+  return `w-full scroll-mt-32 rounded-md border px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none ${
+    invalid ? "border-red-500" : "border-gray-200"
+  } ${extra}`.trim();
+}
+
+function FieldError({ field, errors }: { field: ContactField; errors: ContactErrors }) {
+  if (!errors[field]) return null;
+  return (
+    <p id={`${FIELD_IDS[field]}-error`} className="mb-1 text-sm font-semibold text-red-700">
+      {errors[field]}
+    </p>
+  );
+}
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<ContactErrors>({});
+  const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
+  const summaryRef = useRef<HTMLDivElement>(null);
+
+  const errorList = CONTACT_FIELDS.filter((field) => fieldErrors[field]);
+
+  // El resumen de errores recibe el foco para que también lo anuncie un lector de pantalla
+  useEffect(() => {
+    if (Object.keys(fieldErrors).length > 0) summaryRef.current?.focus();
+  }, [fieldErrors]);
+
+  function describedBy(field: ContactField) {
+    return fieldErrors[field] ? `${FIELD_IDS[field]}-error` : undefined;
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
+    setWhatsappUrl(null);
     const form = e.currentTarget;
     const fd = new FormData(form);
-    const payload = {
+    const values: ContactValues = {
       nombre: String(fd.get("nombre") ?? "").trim(),
       apellidos: String(fd.get("apellidos") ?? "").trim(),
       correo: String(fd.get("correo") ?? "").trim(),
@@ -21,25 +70,40 @@ export default function Contact() {
       servicio: String(fd.get("servicio") ?? "").trim(),
       mensaje: String(fd.get("mensaje") ?? "").trim(),
       aceptaAviso: fd.get("acepta_aviso") === "on",
-      [HONEYPOT_FIELD]: String(fd.get(HONEYPOT_FIELD) ?? ""),
     };
+
+    const errors = validateContact(values);
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    // Si el correo no sale, el mensaje ya escrito puede irse por WhatsApp
+    const fallback = whatsappFallbackUrl(values, WHATSAPP_PHONE);
 
     setIsSubmitting(true);
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...values,
+          [HONEYPOT_FIELD]: String(fd.get(HONEYPOT_FIELD) ?? ""),
+        }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        fields?: ContactErrors;
+      };
+      if (res.status === 400 && data.fields) {
+        setFieldErrors(data.fields);
+        return;
+      }
       if (!res.ok) {
-        setError(data.error || "No se pudo enviar el mensaje.");
+        setWhatsappUrl(fallback);
         return;
       }
       setSubmitted(true);
       form.reset();
     } catch {
-      setError("Error de conexión. Verifica tu red e intenta de nuevo.");
+      setWhatsappUrl(fallback);
     } finally {
       setIsSubmitting(false);
     }
@@ -169,13 +233,55 @@ export default function Contact() {
                   </p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  {error ? (
+                <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                  {errorList.length > 0 ? (
                     <div
-                      className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                      ref={summaryRef}
+                      tabIndex={-1}
+                      role="alert"
+                      className="scroll-mt-28 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 focus:outline-none focus:ring-2 focus:ring-red-300"
+                    >
+                      <p className="font-semibold">
+                        Revisa lo siguiente para enviar tu mensaje:
+                      </p>
+                      <ul className="mt-2 list-disc space-y-1 pl-5">
+                        {errorList.map((field) => (
+                          <li key={field}>
+                            <a
+                              href={`#${FIELD_IDS[field]}`}
+                              className="underline underline-offset-2"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                document.getElementById(FIELD_IDS[field])?.focus();
+                              }}
+                            >
+                              {fieldErrors[field]}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {whatsappUrl ? (
+                    <div
+                      className="rounded-md border border-red-300 bg-red-50 px-4 py-4 text-sm text-red-800"
                       role="alert"
                     >
-                      {error}
+                      <p className="font-semibold">
+                        No pudimos enviar tu mensaje por el formulario.
+                      </p>
+                      <p className="mt-1">
+                        Lo que escribiste sigue aquí. Puedes mandarlo por
+                        WhatsApp o intentar de nuevo en unos minutos.
+                      </p>
+                      <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-block rounded-md bg-green-600 px-5 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-green-700"
+                      >
+                        Enviar por WhatsApp
+                      </a>
                     </div>
                   ) : null}
                   <div className="grid gap-5 sm:grid-cols-2">
@@ -183,6 +289,7 @@ export default function Contact() {
                       <label htmlFor="nombre" className="mb-1 block text-sm font-medium text-slate-dark">
                         Nombre
                       </label>
+                      <FieldError field="nombre" errors={fieldErrors} />
                       <input
                         id="nombre"
                         name="nombre"
@@ -191,13 +298,16 @@ export default function Contact() {
                         maxLength={FIELD_LIMITS.nombre}
                         autoComplete="given-name"
                         placeholder="Tu nombre"
-                        className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
+                        aria-invalid={Boolean(fieldErrors.nombre)}
+                        aria-describedby={describedBy("nombre")}
+                        className={fieldClass(Boolean(fieldErrors.nombre))}
                       />
                     </div>
                     <div>
                       <label htmlFor="apellidos" className="mb-1 block text-sm font-medium text-slate-dark">
                         Apellidos
                       </label>
+                      <FieldError field="apellidos" errors={fieldErrors} />
                       <input
                         id="apellidos"
                         name="apellidos"
@@ -206,7 +316,9 @@ export default function Contact() {
                         maxLength={FIELD_LIMITS.apellidos}
                         autoComplete="family-name"
                         placeholder="Tus apellidos"
-                        className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
+                        aria-invalid={Boolean(fieldErrors.apellidos)}
+                        aria-describedby={describedBy("apellidos")}
+                        className={fieldClass(Boolean(fieldErrors.apellidos))}
                       />
                     </div>
                   </div>
@@ -216,6 +328,7 @@ export default function Contact() {
                       <label htmlFor="correo" className="mb-1 block text-sm font-medium text-slate-dark">
                         Correo electrónico
                       </label>
+                      <FieldError field="correo" errors={fieldErrors} />
                       <input
                         id="correo"
                         name="correo"
@@ -224,7 +337,9 @@ export default function Contact() {
                         maxLength={FIELD_LIMITS.correo}
                         autoComplete="email"
                         placeholder="tu@correo.com"
-                        className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
+                        aria-invalid={Boolean(fieldErrors.correo)}
+                        aria-describedby={describedBy("correo")}
+                        className={fieldClass(Boolean(fieldErrors.correo))}
                       />
                     </div>
                     <div>
@@ -232,6 +347,7 @@ export default function Contact() {
                         Teléfono{" "}
                         <span className="font-normal text-gray-500">(opcional)</span>
                       </label>
+                      <FieldError field="telefono" errors={fieldErrors} />
                       <input
                         id="telefono"
                         name="telefono"
@@ -239,7 +355,9 @@ export default function Contact() {
                         maxLength={FIELD_LIMITS.telefono}
                         autoComplete="tel"
                         placeholder="81 1234 5678"
-                        className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
+                        aria-invalid={Boolean(fieldErrors.telefono)}
+                        aria-describedby={describedBy("telefono")}
+                        className={fieldClass(Boolean(fieldErrors.telefono))}
                       />
                     </div>
                   </div>
@@ -249,10 +367,13 @@ export default function Contact() {
                       Estoy interesado en asesoría en{" "}
                       <span className="font-normal text-gray-500">(opcional)</span>
                     </label>
+                    <FieldError field="servicio" errors={fieldErrors} />
                     <select
                       id="servicio"
                       name="servicio"
-                      className="w-full rounded-md border border-gray-200 bg-white px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
+                      aria-invalid={Boolean(fieldErrors.servicio)}
+                      aria-describedby={describedBy("servicio")}
+                      className={fieldClass(Boolean(fieldErrors.servicio), "bg-white")}
                     >
                       <option value="">Selecciona un servicio</option>
                       {SERVICE_OPTIONS.map((opt) => (
@@ -267,6 +388,7 @@ export default function Contact() {
                     <label htmlFor="mensaje" className="mb-1 block text-sm font-medium text-slate-dark">
                       Háblanos más sobre tu caso
                     </label>
+                    <FieldError field="mensaje" errors={fieldErrors} />
                     <textarea
                       id="mensaje"
                       name="mensaje"
@@ -274,7 +396,9 @@ export default function Contact() {
                       required
                       maxLength={FIELD_LIMITS.mensaje}
                       placeholder="Describe brevemente tu situación..."
-                      className="w-full resize-none rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
+                      aria-invalid={Boolean(fieldErrors.mensaje)}
+                      aria-describedby={describedBy("mensaje")}
+                      className={fieldClass(Boolean(fieldErrors.mensaje), "resize-none")}
                     />
                   </div>
 
@@ -290,11 +414,15 @@ export default function Contact() {
                     />
                   </div>
 
+                  <FieldError field="aceptaAviso" errors={fieldErrors} />
                   <label className="flex items-start gap-3 text-sm leading-relaxed text-gray-600">
                     <input
+                      id="acepta_aviso"
                       type="checkbox"
                       name="acepta_aviso"
                       required
+                      aria-invalid={Boolean(fieldErrors.aceptaAviso)}
+                      aria-describedby={describedBy("aceptaAviso")}
                       className="mt-0.5 h-6 w-6 shrink-0 accent-maroon"
                     />
                     <span>
