@@ -1,23 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-
-const SERVICE_OPTIONS = [
-  "Aclaración ante el Registro Civil",
-  "Divorcios",
-  "Cambio de Régimen Conyugal",
-  "Pensiones Alimenticias",
-  "Órdenes de Protección y Separación",
-  "Reconocimiento de Paternidad",
-  "Pérdida de Patria Potestad",
-  "Juicios Sucesorios",
-  "Arrendamientos",
-  "Diseño y Elaboración de Contratos",
-  "Derecho Constitucional / Amparos",
-  "Juicios Laborales",
-  "Derecho Empresarial",
-  "Asuntos Penales",
-];
+import { FIELD_LIMITS, HONEYPOT_FIELD, SERVICE_OPTIONS } from "@/lib/contact";
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
@@ -37,6 +21,7 @@ export default function Contact() {
       servicio: String(fd.get("servicio") ?? "").trim(),
       mensaje: String(fd.get("mensaje") ?? "").trim(),
       aceptaAviso: fd.get("acepta_aviso") === "on",
+      [HONEYPOT_FIELD]: String(fd.get(HONEYPOT_FIELD) ?? ""),
     };
 
     setIsSubmitting(true);
@@ -203,6 +188,7 @@ export default function Contact() {
                         name="nombre"
                         type="text"
                         required
+                        maxLength={FIELD_LIMITS.nombre}
                         autoComplete="given-name"
                         placeholder="Tu nombre"
                         className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
@@ -217,6 +203,7 @@ export default function Contact() {
                         name="apellidos"
                         type="text"
                         required
+                        maxLength={FIELD_LIMITS.apellidos}
                         autoComplete="family-name"
                         placeholder="Tus apellidos"
                         className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
@@ -234,6 +221,7 @@ export default function Contact() {
                         name="correo"
                         type="email"
                         required
+                        maxLength={FIELD_LIMITS.correo}
                         autoComplete="email"
                         placeholder="tu@correo.com"
                         className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
@@ -248,6 +236,7 @@ export default function Contact() {
                         id="telefono"
                         name="telefono"
                         type="tel"
+                        maxLength={FIELD_LIMITS.telefono}
                         autoComplete="tel"
                         placeholder="81 1234 5678"
                         className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
@@ -283,8 +272,21 @@ export default function Contact() {
                       name="mensaje"
                       rows={5}
                       required
+                      maxLength={FIELD_LIMITS.mensaje}
                       placeholder="Describe brevemente tu situación..."
                       className="w-full resize-none rounded-md border border-gray-200 px-4 py-3 text-sm text-slate-dark transition-colors focus:border-maroon focus:ring-2 focus:ring-maroon/20 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Campo trampa anti-spam: fuera de pantalla, del tabulador y de lectores de pantalla */}
+                  <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                    <label htmlFor={HONEYPOT_FIELD}>No llenes este campo</label>
+                    <input
+                      id={HONEYPOT_FIELD}
+                      name={HONEYPOT_FIELD}
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
                     />
                   </div>
 

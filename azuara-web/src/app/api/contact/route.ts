@@ -1,10 +1,9 @@
 import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { NextResponse } from "next/server";
+import { FIELD_LIMITS, HONEYPOT_FIELD, SERVICE_OPTIONS } from "@/lib/contact";
 
 export const runtime = "nodejs";
-
-const MAX_MESSAGE_LENGTH = 12_000;
 
 type ContactPayload = {
   nombre?: unknown;
@@ -14,7 +13,20 @@ type ContactPayload = {
   servicio?: unknown;
   mensaje?: unknown;
   aceptaAviso?: unknown;
+  [HONEYPOT_FIELD]?: unknown;
 };
+
+const FIELD_LABELS: Record<keyof typeof FIELD_LIMITS, string> = {
+  nombre: "El nombre",
+  apellidos: "Los apellidos",
+  correo: "El correo electrónico",
+  telefono: "El teléfono",
+  mensaje: "El mensaje",
+};
+
+function badRequest(error: string) {
+  return NextResponse.json({ error }, { status: 400 });
+}
 
 function getSmtpConfig(): SMTPTransport.Options | null {
   const host = process.env.SMTP_HOST?.trim();
@@ -54,6 +66,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
   }
 
+  // Una persona no ve el campo trampa: si llega lleno es un bot. Se responde igual que un envío normal.
+  if (String(raw[HONEYPOT_FIELD] ?? "").trim() !== "") {
+    console.warn("Contact API: honeypot filled, message discarded");
+    return NextResponse.json({ ok: true });
+  }
+
   const nombre = String(raw.nombre ?? "").trim();
   const apellidos = String(raw.apellidos ?? "").trim();
   const correo = String(raw.correo ?? "").trim();
@@ -79,11 +97,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Correo electrónico no válido." }, { status: 400 });
   }
 
-  if (mensaje.length > MAX_MESSAGE_LENGTH) {
-    return NextResponse.json(
-      { error: "El mensaje es demasiado largo." },
-      { status: 400 },
-    );
+  const values = { nombre, apellidos, correo, telefono, mensaje };
+  for (const field of Object.keys(FIELD_LIMITS) as (keyof typeof FIELD_LIMITS)[]) {
+    if (values[field].length > FIELD_LIMITS[field]) {
+      return badRequest(
+        `${FIELD_LABELS[field]} debe tener máximo ${FIELD_LIMITS[field]} caracteres.`,
+      );
+    }
+  }
+
+  if (servicio && !SERVICE_OPTIONS.includes(servicio)) {
+    return badRequest("Elige el servicio de la lista del formulario.");
   }
 
   const mailTo =
